@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="ru" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life System Pro - Система Жизненного Баланса</title>
+    <style>
+        :root { 
+            --primary: #667eea; 
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f7fafc; 
+            --card: #ffffff; 
+            --text: #2d3748;
+            --muted: #718096;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .lang-selector {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .lang-selector:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            display: none;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .back-btn.show {
+            display: block;
+        }
+        
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        /* Dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .app-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        .app-card.budget::before { background: linear-gradient(90deg, #4472C4 0%, #2E75B6 100%); }
+        .app-card.planner::before { background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
+        .app-card.habits::before { background: linear-gradient(90deg, #10b981 0%, #059669 100%); }
+        
+        .app-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        .app-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        .app-desc {
+            color: var(--muted);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .app-stats {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .stat-badge {
+            background: #f7fafc;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .stat-badge.blue { background: #e0f2fe; color: #0369a1; }
+        .stat-badge.purple { background: #f3e8ff; color: #7c3aed; }
+        .stat-badge.green { background: #d1fae5; color: #047857; }
+        
+        /* App Container */
+        .app-container {
+            display: none;
+        }
+        .app-container.active {
+            display: block;
+        }
+        
+        /* Common Styles */
+        .card { 
+            background: var(--card); 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+        }
+        h2 { 
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        input, textarea, select { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 8px 0; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 10px; 
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        textarea { min-height: 80px; resize: vertical; }
+        button { 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white; 
+            border: none; 
+            padding: 12px 25px;
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 16px;
+            transition: 0.3s;
+            margin: 5px;
+        }
+        button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); 
+        }
+        
+        /* Budget App Styles */
+        .summary { 
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-box { 
+            background: linear-gradient(135deg, #4472C4 0%, #2E75B6 100%);
+            color: white;
+            padding: 20px; 
+            border-radius: 15px; 
+            text-align: center;
+        }
+        .stat-val { 
+            font-size: 1.8em; 
+            font-weight: bold; 
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        ul { list-style: none; }
+        li { 
+            background: #f9fafb; 
+            border-bottom: 1px solid #e5e7eb; 
+            padding: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .amount { font-weight: bold; font-size: 1.1em; }
+        .income { color: #10b981; }
+        .expense { color: #ef4444; }
+        
+        /* Planner App Styles */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .goal-section {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .week-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .task-item {
+            background: white;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-right: 4px solid var(--primary);
+        }
+        [dir="rtl"] .task-item {
+            border-right: none;
+            border-left: 4px solid var(--primary);
+        }
+        .task-item.completed {
+            background: #f0fff4;
+            border-right-color: var(--success);
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, #047857 100%);
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .mood-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .mood-btn {
+            font-size: 2em;
+            padding: 10px 15px;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .mood-btn:hover, .mood-btn.active {
+            background: var(--primary);
+            transform: scale(1.1);
+        }
+        
+        /* Habits App Styles */
+        .habit-item {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: 0.3s;
+        }
+        .habit-item:hover {
+            border-color: var(--success);
+            transform: translateY(-2px);
+        }
+        .habit-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .habit-icon {
+            font-size: 2em;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .habit-info { flex: 1; min-width: 150px; }
+        .habit-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .habit-streak {
+            color: var(--warning);
+            font-size: 0.9em;
+            margin-top: 3px;
+        }
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(30, 1fr);
+            gap: 3px;
+        }
+        .day-cell {
+            aspect-ratio: 1;
+            background: #e5e7eb;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .day-cell:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+        .day-cell.completed {
+            background: var(--success);
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+        }
+        .day-cell.today {
+            border: 2px solid var(--warning);
+        }
+        .icon-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .icon-option {
+            width: 45px;
+            height: 45px;
+            background: white;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .icon-option:hover { transform: scale(1.1); }
+        .icon-option.selected {
+            border-color: var(--success);
+            background: #d1fae5;
+            transform: scale(1.1);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; text-align: center; }
+            .dashboard { grid-template-columns: 1fr; }
+            .days-grid { grid-template-columns: repeat(15, 1fr); }
+            .summary { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-content">
+        <div class="logo">
+            <span>🎯</span>
+            <span data-i18n="appTitle">Система Жизненного Баланса</span>
+        </div>
+        <div class="header-controls">
+            <select class="lang-selector" id="langSelector" onchange="changeLanguage(this.value)">
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="ar">🇸🇦 العربية</option>
+            </select>
+            <button class="back-btn" id="backBtn" onclick="showDashboard()" data-i18n="backBtn">🏠 Главная</button>
+        </div>
+    </div>
+</div>
+
+<div class="main-container">
+    
+    <!-- Dashboard -->
+    <div id="dashboard" class="app-container active">
+        <h1 style="text-align: center; margin-bottom: 30px; color: var(--text);" data-i18n="welcomeTitle">
+            Добро пожаловать в вашу интегрированную систему 🌟
+        </h1>
+        
+        <div class="dashboard">
+            <!-- Budget App Card -->
+            <div class="app-card budget" onclick="showApp('budget')">
+                <div class="app-icon">💰</div>
+                <div class="app-title" data-i18n="budgetTitle">Умный Трекер Бюджета</div>
+                <div class="app-desc" data-i18n="budgetDesc">Контролируй свои финансы и знай, куда уходит каждая зарплата. Отслеживай доходы и расходы легко.</div>
+                <div class="app-stats">
+                    <div class="stat-badge blue" id="budgetBalance" data-i18n="balance">Баланс: 0 ₽</div>
+                    <div class="stat-badge blue" id="budgetTransactions" data-i18n="transactions">0 транзакций</div>
+                </div>
+            </div>
+            
+            <!-- Planner App Card -->
+            <div class="app-card planner" onclick="showApp('planner')">
+                <div class="app-icon">🎯</div>
+                <div class="app-title" data-i18n="plannerTitle">Планер на 90 Дней</div>
+                <div class="app-desc" data-i18n="plannerDesc">Преврати мечты в реальность за 12 недель. Планируй, выполняй и отслеживай прогресс.</div>
+                <div class="app-stats">
+                    <div class="stat-badge purple" id="plannerProgress" data-i18n="progress">0% завершено</div>
+                    <div class="stat-badge purple" id="plannerWeeks" data-i18n="weeks">0 недель</div>
+                </div>
+            </div>
+            
+            <!-- Habits App Card -->
+            <div class="app-card habits" onclick="showApp('habits')">
+                <div class="app-icon">🌱</div>
+                <div class="app-title" data-i18n="habitsTitle">Трекер Привычек</div>
+                <div class="app-desc" data-i18n="habitsDesc">Строй полезные привычки день за днём. Отслеживай прогресс и поддерживай серию.</div>
+                <div class="app-stats">
+                    <div class="stat-badge green" id="habitsCount" data-i18n="habitsCount">0 привычек</div>
+                    <div class="stat-badge green" id="habitsStreak" data-i18n="bestStreak">🔥 0 дней</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Budget App -->
+    <div id="budgetApp" class="app-container">
+        <div class="card">
+            <h2 data-i18n="budgetSummary">💰 Сводка Бюджета</h2>
+            <div class="summary">
+                <div class="stat-box">
+                    <div class="stat-val" id="totalIncome">0 ₽</div>
+                    <div class="stat-label" data-i18n="income">Доход</div>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    <div class="stat-val" id="totalExpense">0 ₽</div>
+                    <div class="stat-label" data-i18n="expenses">Расходы</div>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <div class="stat-val" id="balance">0 ₽</div>
+                    <div class="stat-label" data-i18n="balance">Баланс</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 data-i18n="addTransaction">➕ Добавить Транзакцию</h2>
+            <input type="text" id="desc" data-i18n-placeholder="transactionDesc" placeholder="Описание (например: Продукты)">
+            <input type="number" id="amount" data-i18n-placeholder="amount" placeholder="Сумма (рубли)">
+            <select id="type">
+                <option value="expense" data-i18n="expenseOption">Расходы 💸</option>
+                <option value="income" data-i18n="incomeOption">Доход 💵</option>
+            </select>
+            <button onclick="addTransaction()" data-i18n="addBtn">Добавить</button>
+        </div>
+
+        <div class="card">
+            <h2 data-i18n="transactionHistory">📋 История Транзакций</h2>
+            <ul id="list"></ul>
+        </div>
+    </div>
+    
+    <!-- Planner App -->
+    <div id="plannerApp" class="app-container">
+        <div class="card">
+            <h1 style="color: var(--primary);" data-i18n="plannerTitle">🎯 Планер на 90 Дней</h1>
+            <p style="text-align: center; color: var(--muted); margin-bottom: 20px;" data-i18n="plannerSubtitle">Преврати мечты в реальность за 12 недель</p>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('vision', this)" data-i18n="visionTab">🌟 Видение</button>
+                <button class="tab" onclick="showTab('weekly', this)" data-i18n="weeklyTab">📅 Неделя</button>
+                <button class="tab" onclick="showTab('daily', this)" data-i18n="dailyTab">✓ Ежедневно</button>
+                <button class="tab" onclick="showTab('stats', this)" data-i18n="statsTab">📊 Статистика</button>
+            </div>
+
+            <!-- Vision Tab -->
+            <div id="vision" class="tab-content active">
+                <div class="goal-section">
+                    <h2 data-i18n="mainGoal">🎯 Главная Цель на 90 Дней</h2>
+                    <textarea id="mainGoalText" data-i18n-placeholder="mainGoalPlaceholder" placeholder="Какая цель, которую ты хочешь достичь за 90 дней?"></textarea>
+                    
+                    <h2 style="margin-top: 20px;" data-i18n="whyGoal">💡 Почему эта цель важна?</h2>
+                    <textarea id="whyGoalText" data-i18n-placeholder="whyGoalPlaceholder" placeholder="Напиши свои мотивы и причины..."></textarea>
+                    
+                    <button onclick="saveVision()" data-i18n="saveBtn">💾 Сохранить</button>
+                </div>
+            </div>
+
+            <!-- Weekly Tab -->
+            <div id="weekly" class="tab-content">
+                <h2 data-i18n="weeklyPlan">📅 Недельный План (12 Недель)</h2>
+                <div id="weeksContainer"></div>
+                <button onclick="addWeek()" data-i18n="addWeek">➕ Добавить Неделю</button>
+            </div>
+
+            <!-- Daily Tab -->
+            <div id="daily" class="tab-content">
+                <h2 data-i18n="dailyCheckin">✓ Ежедневная Отметка</h2>
+                
+                <div class="goal-section">
+                    <h3 data-i18n="howFeel">Как ты себя чувствуешь сегодня?</h3>
+                    <div class="mood-selector">
+                        <button class="mood-btn" onclick="selectMood('😫', this)">😫</button>
+                        <button class="mood-btn" onclick="selectMood('😕', this)">😕</button>
+                        <button class="mood-btn" onclick="selectMood('😐', this)">😐</button>
+                        <button class="mood-btn" onclick="selectMood('😊', this)">😊</button>
+                        <button class="mood-btn" onclick="selectMood('🤩', this)">🤩</button>
+                    </div>
+                    
+                    <h3 style="margin-top: 20px;" data-i18n="energyLevel">Уровень Энергии (1-10)</h3>
+                    <input type="range" id="energyLevel" min="1" max="10" value="5" oninput="updateEnergyLabel(this.value)">
+                    <div id="energyLabel" style="text-align: center; font-size: 1.5em; font-weight: bold; color: var(--primary);">5</div>
+                    
+                    <h3 style="margin-top: 20px;" data-i18n="achievements">Что ты достиг сегодня?</h3>
+                    <textarea id="dailyAchievements" data-i18n-placeholder="achievementsPlaceholder" placeholder="Напиши свои достижения сегодня..."></textarea>
+                    
+                    <h3 style="margin-top: 20px;" data-i18n="obstacles">Что тебя остановило?</h3>
+                    <textarea id="dailyObstacles" data-i18n-placeholder="obstaclesPlaceholder" placeholder="Препятствия, с которыми ты столкнулся..."></textarea>
+                    
+                    <button onclick="saveDailyCheckin()" data-i18n="saveBtn">💾 Сохранить</button>
+                </div>
+            </div>
+
+            <!-- Stats Tab -->
+            <div id="stats" class="tab-content">
+                <h2 data-i18n="progressStats">📊 Статистика Прогресса</h2>
+                
+                <div class="summary">
+                    <div class="stat-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="stat-val" id="totalTasks">0</div>
+                        <div class="stat-label" data-i18n="totalTasks">Всего Задач</div>
+                    </div>
+                    <div class="stat-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <div class="stat-val" id="completedTasks">0</div>
+                        <div class="stat-label" data-i18n="completedTasks">Выполнено</div>
+                    </div>
+                    <div class="stat-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <div class="stat-val" id="completionRate">0%</div>
+                        <div class="stat-label" data-i18n="completionRate">Процент Выполнения</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;" data-i18n="overallProgress">Общий Прогресс</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+                </div>
+                
+                <h3 style="margin-top: 30px;" data-i18n="dailyLog">📝 Журнал Ежедневных Отметок</h3>
+                <div id="dailyLog"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Habits App -->
+    <div id="habitsApp" class="app-container">
+        <div class="card">
+            <h1 style="color: var(--success);" data-i18n="habitsTitle">🌱 Трекер Привычек</h1>
+            <p style="text-align: center; color: var(--muted); margin-bottom: 20px;" data-i18n="habitsSubtitle">Строй полезные привычки день за днём</p>
+
+            <div class="summary">
+                <div class="stat-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <div class="stat-val" id="totalHabits">0</div>
+                    <div class="stat-label" data-i18n="myHabits">Мои Привычки</div>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <div class="stat-val" id="bestStreak">0 🔥</div>
+                    <div class="stat-label" data-i18n="bestStreak">Лучшая Серия</div>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
+                    <div class="stat-val" id="todayProgress">0%</div>
+                    <div class="stat-label" data-i18n="todayProgress">Прогресс Сегодня</div>
+                </div>
+            </div>
+
+            <h2 data-i18n="myHabits">📋 Мои Привычки</h2>
+            <div id="habitsList"></div>
+
+            <div class="goal-section">
+                <h2 data-i18n="addNewHabit">➕ Добавить Новую Привычку</h2>
+                <input type="text" id="habitName" data-i18n-placeholder="habitNamePlaceholder" placeholder="Название привычки (например: Пить воду)">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block;" data-i18n="chooseIcon">Выбери иконку:</label>
+                <div class="icon-selector" id="iconSelector">
+                    <div class="icon-option" data-icon="💧">💧</div>
+                    <div class="icon-option" data-icon="😴">😴</div>
+                    <div class="icon-option" data-icon="🚶">🚶</div>
+                    <div class="icon-option" data-icon="📚">📚</div>
+                    <div class="icon-option" data-icon="🧘">🧘</div>
+                    <div class="icon-option" data-icon="🥗">🥗</div>
+                    <div class="icon-option" data-icon="💪">💪</div>
+                    <div class="icon-option" data-icon="🏃">🏃</div>
+                </div>
+                <button onclick="addHabit()" data-i18n="addHabitBtn">➕ Добавить Привычку</button>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<script>
+    // ============ TRANSLATIONS ============
+    const translations = {
+        ru: {
+            appTitle: "Система Жизненного Баланса",
+            backBtn: "🏠 Главная",
+            welcomeTitle: "Добро пожаловать в вашу интегрированную систему 🌟",
+            budgetTitle: "Умный Трекер Бюджета",
+            budgetDesc: "Контролируй свои финансы и знай, куда уходит каждая зарплата. Отслеживай доходы и расходы легко.",
+            plannerTitle: "Планер на 90 Дней",
+            plannerDesc: "Преврати мечты в реальность за 12 недель. Планируй, выполняй и отслеживай прогресс.",
+            habitsTitle: "Трекер Привычек",
+            habitsDesc: "Строй полезные привычки день за днём. Отслеживай прогресс и поддерживай серию.",
+            balance: "Баланс: 0 ₽",
+            transactions: "0 транзакций",
+            progress: "0% завершено",
+            weeks: "0 недель",
+            habitsCount: "0 привычек",
+            bestStreak: "🔥 0 дней",
+            budgetSummary: "💰 Сводка Бюджета",
+            income: "Доход",
+            expenses: "Расходы",
+            addTransaction: "➕ Добавить Транзакцию",
+            transactionDesc: "Описание (например: Продукты)",
+            amount: "Сумма (рубли)",
+            expenseOption: "Расходы 💸",
+            incomeOption: "Доход 💵",
+            addBtn: "Добавить",
+            transactionHistory: "📋 История Транзакций",
+            plannerSubtitle: "Преврати мечты в реальность за 12 недель",
+            visionTab: "🌟 Видение",
+            weeklyTab: "📅 Неделя",
+            dailyTab: "✓ Ежедневно",
+            statsTab: "📊 Статистика",
+            mainGoal: "🎯 Главная Цель на 90 Дней",
+            mainGoalPlaceholder: "Какая цель, которую ты хочешь достичь за 90 дней?",
+            whyGoal: "💡 Почему эта цель важна?",
+            whyGoalPlaceholder: "Напиши свои мотивы и причины...",
+            saveBtn: "💾 Сохранить",
+            weeklyPlan: "📅 Недельный План (12 Недель)",
+            addWeek: "➕ Добавить Неделю",
+            dailyCheckin: "✓ Ежедневная Отметка",
+            howFeel: "Как ты себя чувствуешь сегодня?",
+            energyLevel: "Уровень Энергии (1-10)",
+            achievements: "Что ты достиг сегодня?",
+            achievementsPlaceholder: "Напиши свои достижения сегодня...",
+            obstacles: "Что тебя остановило?",
+            obstaclesPlaceholder: "Препятствия, с которыми ты столкнулся...",
+            progressStats: "📊 Статистика Прогресса",
+            totalTasks: "Всего Задач",
+            completedTasks: "Выполнено",
+            completionRate: "Процент Выполнения",
+            overallProgress: "Общий Прогресс",
+            dailyLog: "📝 Журнал Ежедневных Отметок",
+            habitsSubtitle: "Строй полезные привычки день за днём",
+            myHabits: "Мои Привычки",
+            todayProgress: "Прогресс Сегодня",
+            addNewHabit: "➕ Добавить Новую Привычку",
+            habitNamePlaceholder: "Название привычки (например: Пить воду)",
+            chooseIcon: "Выбери иконку:",
+            addHabitBtn: "➕ Добавить Привычку"
+        },
+        en: {
+            appTitle: "Life Balance System",
+            backBtn: "🏠 Home",
+            welcomeTitle: "Welcome to your integrated system 🌟",
+            budgetTitle: "Smart Budget Tracker",
+            budgetDesc: "Control your finances and know where every salary goes. Track income and expenses easily.",
+            plannerTitle: "90-Day Life Planner",
+            plannerDesc: "Turn dreams into reality in 12 weeks. Plan, execute, and track progress.",
+            habitsTitle: "Habit Tracker",
+            habitsDesc: "Build healthy habits day by day. Track progress and maintain your streak.",
+            balance: "Balance: 0 ₽",
+            transactions: "0 transactions",
+            progress: "0% completed",
+            weeks: "0 weeks",
+            habitsCount: "0 habits",
+            bestStreak: "🔥 0 days",
+            budgetSummary: "💰 Budget Summary",
+            income: "Income",
+            expenses: "Expenses",
+            addTransaction: "➕ Add Transaction",
+            transactionDesc: "Description (e.g., Groceries)",
+            amount: "Amount (rubles)",
+            expenseOption: "Expenses 💸",
+            incomeOption: "Income 💵",
+            addBtn: "Add",
+            transactionHistory: "📋 Transaction History",
+            plannerSubtitle: "Turn dreams into reality in 12 weeks",
+            visionTab: "🌟 Vision",
+            weeklyTab: "📅 Weekly",
+            dailyTab: "✓ Daily",
+            statsTab: "📊 Statistics",
+            mainGoal: "🎯 Main Goal for 90 Days",
+            mainGoalPlaceholder: "What goal do you want to achieve in 90 days?",
+            whyGoal: "💡 Why is this goal important?",
+            whyGoalPlaceholder: "Write your motives and reasons...",
+            saveBtn: "💾 Save",
+            weeklyPlan: "📅 Weekly Plan (12 Weeks)",
+            addWeek: "➕ Add Week",
+            dailyCheckin: "✓ Daily Check-in",
+            howFeel: "How do you feel today?",
+            energyLevel: "Energy Level (1-10)",
+            achievements: "What did you achieve today?",
+            achievementsPlaceholder: "Write your achievements today...",
+            obstacles: "What stopped you?",
+            obstaclesPlaceholder: "Obstacles you faced...",
+            progressStats: "📊 Progress Statistics",
+            totalTasks: "Total Tasks",
+            completedTasks: "Completed",
+            completionRate: "Completion Rate",
+            overallProgress: "Overall Progress",
+            dailyLog: "📝 Daily Check-in Log",
+            habitsSubtitle: "Build healthy habits day by day",
+            myHabits: "My Habits",
+            todayProgress: "Today's Progress",
+            addNewHabit: "➕ Add New Habit",
+            habitNamePlaceholder: "Habit name (e.g., Drink water)",
+            chooseIcon: "Choose icon:",
+            addHabitBtn: "➕ Add Habit"
+        },
+        ar: {
+            appTitle: "نظام التوازن الحيوي",
+            backBtn: "🏠 الرئيسية",
+            welcomeTitle: "مرحباً بك في نظامك المتكامل 🌟",
+            budgetTitle: "متتبع الميزانية الذكي",
+            budgetDesc: "تحكم في أموالك واعرف أين يذهب راتبك. تتبع الدخل والمصروفات بسهولة.",
+            plannerTitle: "مخطط الحياة 90 يوم",
+            plannerDesc: "حوّل أحلامك إلى واقع في 12 أسبوع. خطط، نفذ، وراجع تقدمك.",
+            habitsTitle: "متتبع العادات الصحية",
+            habitsDesc: "ابنِ عاداتك اليومية يوماً بعد يوم. تتبع تقدمك وحافظ على سلسلتك.",
+            balance: "الرصيد: 0 ₽",
+            transactions: "0 معاملة",
+            progress: "0% مكتمل",
+            weeks: "0 أسابيع",
+            habitsCount: "0 عادات",
+            bestStreak: "🔥 0 أيام",
+            budgetSummary: "💰 ملخص الميزانية",
+            income: "الدخل",
+            expenses: "المصروفات",
+            addTransaction: "➕ إضافة معاملة",
+            transactionDesc: "وصف المعاملة (مثال: بقالة)",
+            amount: "المبلغ (روبل)",
+            expenseOption: "مصروفات 💸",
+            incomeOption: "دخل 💵",
+            addBtn: "إضافة",
+            transactionHistory: "📋 سجل المعاملات",
+            plannerSubtitle: "حوّل أحلامك إلى واقع في 12 أسبوع",
+            visionTab: "🌟 الرؤية",
+            weeklyTab: "📅 الأسبوعي",
+            dailyTab: "✓ اليومي",
+            statsTab: "📊 الإحصائيات",
+            mainGoal: "🎯 الهدف الرئيسي للـ 90 يوم",
+            mainGoalPlaceholder: "ما هو الهدف الذي تريد تحقيقه في الـ 90 يوم القادمة؟",
+            whyGoal: "💡 لماذا هذا الهدف مهم؟",
+            whyGoalPlaceholder: "اكتب دوافعك وأسبابك...",
+            saveBtn: "💾 حفظ",
+            weeklyPlan: "📅 الخطة الأسبوعية (12 أسبوع)",
+            addWeek: "➕ إضافة أسبوع",
+            dailyCheckin: "✓ تسجيل يومي",
+            howFeel: "كيف تشعر اليوم؟",
+            energyLevel: "مستوى الطاقة (1-10)",
+            achievements: "ماذا أنجزت اليوم؟",
+            achievementsPlaceholder: "اكتب إنجازاتك اليوم...",
+            obstacles: "ما الذي أعاقك؟",
+            obstaclesPlaceholder: "التحديات التي واجهتها...",
+            progressStats: "📊 إحصائيات التقدم",
+            totalTasks: "إجمالي المهام",
+            completedTasks: "المهام المنجزة",
+            completionRate: "نسبة الإنجاز",
+            overallProgress: "التقدم العام",
+            dailyLog: "📝 سجل التسجيلات اليومية",
+            habitsSubtitle: "ابنِ عاداتك اليومية يوماً بعد يوم",
+            myHabits: "عاداتي",
+            todayProgress: "إنجاز اليوم",
+            addNewHabit: "➕ إضافة عادة جديدة",
+            habitNamePlaceholder: "اسم العادة (مثال: شرب الماء)",
+            chooseIcon: "اختر أيقونة:",
+            addHabitBtn: "➕ إضافة العادة"
+        }
+    };
+
+    let currentLang = localStorage.getItem('language') || 'ru';
+
+    // ============ LANGUAGE FUNCTIONS ============
+    function changeLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('language', lang);
+        
+        // Update HTML direction
+        const html = document.documentElement;
+        if (lang === 'ar') {
+            html.setAttribute('dir', 'rtl');
+            html.setAttribute('lang', 'ar');
+        } else {
+            html.setAttribute('dir', 'ltr');
+            html.setAttribute('lang', lang);
+        }
+        
+        // Update all text elements
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[lang][key]) {
+                el.textContent = translations[lang][key];
+            }
+        });
+        
+        // Update placeholders
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (translations[lang][key]) {
+                el.placeholder = translations[lang][key];
+            }
+        });
+        
+        // Update selector
+        document.getElementById('langSelector').value = lang;
+    }
+
+    // ============ DATA MANAGEMENT ============
+    let budgetData = JSON.parse(localStorage.getItem('budgetData')) || { transactions: [] };
+    let plannerData = JSON.parse(localStorage.getItem('plannerData')) || {
+        vision: { mainGoal: '', whyGoal: '' },
+        weeks: [],
+        dailyCheckins: []
+    };
+    let habitsData = JSON.parse(localStorage.getItem('habitsData')) || { habits: [] };
+    let selectedIcon = '💧';
+    let selectedMood = '';
+
+    // ============ NAVIGATION ============
+    function showApp(appName) {
+        document.querySelectorAll('.app-container').forEach(c => c.classList.remove('active'));
+        document.getElementById(appName + 'App').classList.add('active');
+        document.getElementById('backBtn').classList.add('show');
+        
+        if (appName === 'budget') initBudget();
+        if (appName === 'planner') initPlanner();
+        if (appName === 'habits') initHabits();
+    }
+
+    function showDashboard() {
+        document.querySelectorAll('.app-container').forEach(c => c.classList.remove('active'));
+        document.getElementById('dashboard').classList.add('active');
+        document.getElementById('backBtn').classList.remove('show');
+        updateDashboardStats();
+    }
+
+    function updateDashboardStats() {
+        const income = budgetData.transactions.filter(t => t.type === 'income').reduce((a, t) => a + t.amount, 0);
+        const expense = budgetData.transactions.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0);
+        const balance = income - expense;
+        document.getElementById('budgetBalance').textContent = `${translations[currentLang].balance.split(':')[0]}: ${balance.toFixed(0)} ₽`;
+        document.getElementById('budgetTransactions').textContent = `${budgetData.transactions.length} ${translations[currentLang].transactions.split(' ')[1]}`;
+
+        let totalTasks = 0, completedTasks = 0;
+        plannerData.weeks.forEach(w => {
+            totalTasks += w.tasks.length;
+            completedTasks += w.tasks.filter(t => t.completed).length;
+        });
+        const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        document.getElementById('plannerProgress').textContent = `${progress}% ${translations[currentLang].progress.split(' ')[1]}`;
+        document.getElementById('plannerWeeks').textContent = `${plannerData.weeks.length} ${translations[currentLang].weeks.split(' ')[1]}`;
+
+        let bestStreak = 0;
+        habitsData.habits.forEach(h => {
+            const streak = calculateStreak(h);
+            if (streak > bestStreak) bestStreak = streak;
+        });
+        document.getElementById('habitsCount').textContent = `${habitsData.habits.length} ${translations[currentLang].habitsCount.split(' ')[1]}`;
+        document.getElementById('habitsStreak').textContent = `🔥 ${bestStreak} ${translations[currentLang].bestStreak.split(' ')[1]}`;
+    }
+
+    // ============ BUDGET APP ============
+    function initBudget() {
+        renderTransactions();
+        updateBudgetValues();
+    }
+
+    function updateBudgetValues() {
+        const income = budgetData.transactions.filter(t => t.type === 'income').reduce((a, t) => a + t.amount, 0);
+        const expense = budgetData.transactions.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0);
+        const balance = income - expense;
+
+        document.getElementById('balance').textContent = `${balance.toFixed(2)} ₽`;
+        document.getElementById('totalIncome').textContent = `${income.toFixed(2)} ₽`;
+        document.getElementById('totalExpense').textContent = `${expense.toFixed(2)} ₽`;
+    }
+
+    function addTransaction() {
+        const desc = document.getElementById('desc').value;
+        const amount = +document.getElementById('amount').value;
+        const type = document.getElementById('type').value;
+
+        if (desc.trim() === '' || amount === 0) return alert(currentLang === 'ru' ? 'Пожалуйста, введите данные' : currentLang === 'en' ? 'Please enter data' : 'الرجاء إدخال البيانات');
+
+        budgetData.transactions.push({ id: Date.now(), desc, amount, type });
+        localStorage.setItem('budgetData', JSON.stringify(budgetData));
+        
+        document.getElementById('desc').value = '';
+        document.getElementById('amount').value = '';
+        renderTransactions();
+        updateBudgetValues();
+    }
+
+    function renderTransactions() {
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+        budgetData.transactions.slice().reverse().forEach(t => {
+            const sign = t.type === 'income' ? '+' : '-';
+            const item = document.createElement('li');
+            item.innerHTML = `${t.desc} <span class="amount ${t.type}">${sign}${t.amount} ₽</span>`;
+            list.appendChild(item);
+        });
+    }
+
+    // ============ PLANNER APP ============
+    function initPlanner() {
+        loadVision();
+        renderWeeks();
+        renderDailyLog();
+        updatePlannerStats();
+    }
+
+    function showTab(tabName, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function saveVision() {
+        plannerData.vision.mainGoal = document.getElementById('mainGoalText').value;
+        plannerData.vision.whyGoal = document.getElementById('whyGoalText').value;
+        localStorage.setItem('plannerData', JSON.stringify(plannerData));
+        alert(currentLang === 'ru' ? '✅ Видение сохранено!' : currentLang === 'en' ? '✅ Vision saved!' : '✅ تم حفظ الرؤية!');
+    }
+
+    function loadVision() {
+        document.getElementById('mainGoalText').value = plannerData.vision.mainGoal || '';
+        document.getElementById('whyGoalText').value = plannerData.vision.whyGoal || '';
+    }
+
+    function renderWeeks() {
+        const container = document.getElementById('weeksContainer');
+        container.innerHTML = '';
+        
+        plannerData.weeks.forEach((week, weekIndex) => {
+            const weekCard = document.createElement('div');
+            weekCard.className = 'week-card';
+            const weekLabel = currentLang === 'ru' ? `Неделя ${weekIndex + 1}` : currentLang === 'en' ? `Week ${weekIndex + 1}` : `الأسبوع ${weekIndex + 1}`;
+            weekCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong style="color: var(--secondary); font-size: 1.2em;">${weekLabel}</strong>
+                    <button onclick="deleteWeek(${weekIndex})" style="background: #ef4444; padding: 5px 10px; font-size: 12px;">🗑️</button>
+                </div>
+                <input type="text" placeholder="${currentLang === 'ru' ? 'Цель недели...' : currentLang === 'en' ? 'Week goal...' : 'هدف الأسبوع...'}" value="${week.goal || ''}" onchange="updateWeekGoal(${weekIndex}, this.value)">
+                <div>
+                    ${week.tasks.map((task, taskIndex) => `
+                        <div class="task-item ${task.completed ? 'completed' : ''}">
+                            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${weekIndex}, ${taskIndex})">
+                            <span style="flex: 1;">${task.text}</span>
+                            <button onclick="deleteTask(${weekIndex}, ${taskIndex})" style="background: #ef4444; padding: 5px 10px; font-size: 12px;">×</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="newTask-${weekIndex}" placeholder="${currentLang === 'ru' ? 'Новая задача...' : currentLang === 'en' ? 'New task...' : 'مهمة جديدة...'}">
+                    <button onclick="addTask(${weekIndex})" style="margin: 0;">➕</button>
+                </div>
+            `;
+            container.appendChild(weekCard);
+        });
+    }
+
+    function addWeek() {
+        plannerData.weeks.push({ goal: '', tasks: [] });
+        localStorage.setItem('plannerData', JSON.stringify(plannerData));
+        renderWeeks();
+    }
+
+    function deleteWeek(index) {
+        const confirmMsg = currentLang === 'ru' ? 'Вы уверены?' : currentLang === 'en' ? 'Are you sure?' : 'هل أنت متأكد؟';
+        if (confirm(confirmMsg)) {
+            plannerData.weeks.splice(index, 1);
+            localStorage.setItem('plannerData', JSON.stringify(plannerData));
+            renderWeeks();
+            updatePlannerStats();
+        }
+    }
+
+    function updateWeekGoal(index, value) {
+        plannerData.weeks[index].goal = value;
+        localStorage.setItem('plannerData', JSON.stringify(plannerData));
+    }
+
+    function addTask(weekIndex) {
+        const input = document.getElementById(`newTask-${weekIndex}`);
+        const text = input.value.trim();
+        if (text) {
+            plannerData.weeks[weekIndex].tasks.push({ text, completed: false });
+            input.value = '';
+            localStorage.setItem('plannerData', JSON.stringify(plannerData));
+            renderWeeks();
+            updatePlannerStats();
+        }
+    }
+
+    function toggleTask(weekIndex, taskIndex) {
+        plannerData.weeks[weekIndex].tasks[taskIndex].completed = !plannerData.weeks[weekIndex].tasks[taskIndex].completed;
+        localStorage.setItem('plannerData', JSON.stringify(plannerData));
+        renderWeeks();
+        updatePlannerStats();
+    }
+
+    function deleteTask(weekIndex, taskIndex) {
+        plannerData.weeks[weekIndex].tasks.splice(taskIndex, 1);
+        localStorage.setItem('plannerData', JSON.stringify(plannerData));
+        renderWeeks();
+        updatePlannerStats();
+    }
+
+    function selectMood(mood, btn) {
+        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedMood = mood;
+    }
+
+    function updateEnergyLabel(value) {
+        document.getElementById('energyLabel').textContent = value;
+    }
+
+    function saveDailyCheckin() {
+        const checkin = {
+            date: new Date().toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : currentLang === 'en' ? 'en-US' : 'ar-EG'),
+            mood: selectedMood,
+            energy: document.getElementById('energyLevel').value,
+            achievements: document.getElementById('dailyAchievements').value,
+            obstacles: document.getElementById('dailyObstacles').value
+        };
+        
+        plannerData.dailyCheckins.push(checkin);
+        localStorage.setItem('plannerData', JSON.stringify(plannerData));
+        
+        selectedMood = '';
+        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('energyLevel').value = 5;
+        document.getElementById('energyLabel').textContent = '5';
+        document.getElementById('dailyAchievements').value = '';
+        document.getElementById('dailyObstacles').value = '';
+        
+        alert(currentLang === 'ru' ? '✅ Ежедневная отметка сохранена!' : currentLang === 'en' ? '✅ Daily check-in saved!' : '✅ تم حفظ التسجيل اليومي!');
+        renderDailyLog();
+    }
+
+    function renderDailyLog() {
+        const log = document.getElementById('dailyLog');
+        const labels = {
+            ru: { achievements: 'Достижения:', obstacles: 'Препятствия:', none: 'Нет' },
+            en: { achievements: 'Achievements:', obstacles: 'Obstacles:', none: 'None' },
+            ar: { achievements: 'الإنجازات:', obstacles: 'التحديات:', none: 'لا يوجد' }
+        };
+        const l = labels[currentLang];
+        
+        log.innerHTML = plannerData.dailyCheckins.slice().reverse().map(c => `
+            <div class="goal-section" style="margin: 10px 0;">
+                <strong>${c.date}</strong> ${c.mood} | ${currentLang === 'ru' ? 'Энергия' : currentLang === 'en' ? 'Energy' : 'الطاقة'}: ${c.energy}/10
+                <p style="margin-top: 10px;"><strong>${l.achievements}</strong> ${c.achievements || l.none}</p>
+                <p style="margin-top: 5px;"><strong>${l.obstacles}</strong> ${c.obstacles || l.none}</p>
+            </div>
+        `).join('');
+    }
+
+    function updatePlannerStats() {
+        let totalTasks = 0, completedTasks = 0;
+        plannerData.weeks.forEach(w => {
+            totalTasks += w.tasks.length;
+            completedTasks += w.tasks.filter(t => t.completed).length;
+        });
+        
+        const rate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        document.getElementById('totalTasks').textContent = totalTasks;
+        document.getElementById('completedTasks').textContent = completedTasks;
+        document.getElementById('completionRate').textContent = rate + '%';
+        
+        const progressFill = document.getElementById('progressFill');
+        progressFill.style.width = rate + '%';
+        progressFill.textContent = rate + '%';
+    }
+
+    // ============ HABITS APP ============
+    function initHabits() {
+        setupIconSelector();
+        renderHabits();
+        updateHabitsStats();
+    }
+
+    function setupIconSelector() {
+        document.querySelectorAll('.icon-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedIcon = this.dataset.icon;
+            });
+        });
+        document.querySelector('.icon-option').classList.add('selected');
+    }
+
+    function addHabit() {
+        const name = document.getElementById('habitName').value.trim();
+        if (!name) return alert(currentLang === 'ru' ? 'Пожалуйста, введите название привычки' : currentLang === 'en' ? 'Please enter habit name' : 'الرجاء إدخال اسم العادة');
+
+        habitsData.habits.push({
+            id: Date.now(),
+            name: name,
+            icon: selectedIcon,
+            createdAt: new Date().toISOString().split('T')[0],
+            completedDays: []
+        });
+
+        localStorage.setItem('habitsData', JSON.stringify(habitsData));
+        document.getElementById('habitName').value = '';
+        renderHabits();
+        updateHabitsStats();
+    }
+
+    function deleteHabit(id) {
+        const confirmMsg = currentLang === 'ru' ? 'Вы уверены?' : currentLang === 'en' ? 'Are you sure?' : 'هل أنت متأكد؟';
+        if (confirm(confirmMsg)) {
+            habitsData.habits = habitsData.habits.filter(h => h.id !== id);
+            localStorage.setItem('habitsData', JSON.stringify(habitsData));
+            renderHabits();
+            updateHabitsStats();
+        }
+    }
+
+    function toggleDay(habitId, dateStr) {
+        const habit = habitsData.habits.find(h => h.id === habitId);
+        if (!habit) return;
+
+        const index = habit.completedDays.indexOf(dateStr);
+        if (index > -1) {
+            habit.completedDays.splice(index, 1);
+        } else {
+            habit.completedDays.push(dateStr);
+        }
+
+        localStorage.setItem('habitsData', JSON.stringify(habitsData));
+        renderHabits();
+        updateHabitsStats();
+    }
+
+    function calculateStreak(habit) {
+        let streak = 0;
+        let checkDate = new Date();
+
+        while (true) {
+            const dateStr = checkDate.toISOString().split('T')[0];
+            if (habit.completedDays.includes(dateStr)) {
+                streak++;
+                checkDate.setDate(checkDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+        return streak;
+    }
+
+    function renderHabits() {
+        const container = document.getElementById('habitsList');
+        const labels = {
+            ru: { noHabits: 'Нет привычек', addFirst: 'Добавьте первую привычку', streak: 'Серия', total: 'Всего', empty: 'Нет' },
+            en: { noHabits: 'No habits yet', addFirst: 'Add your first habit', streak: 'Streak', total: 'Total', empty: 'None' },
+            ar: { noHabits: 'لا توجد عادات بعد', addFirst: 'ابدأ بإضافة عادة جديدة', streak: 'سلسلة', total: 'إجمالي', empty: 'لا يوجد' }
+        };
+        const l = labels[currentLang];
+        
+        if (habitsData.habits.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--muted);">
+                    <div style="font-size: 4em;">🌱</div>
+                    <h3>${l.noHabits}</h3>
+                    <p>${l.addFirst}</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = habitsData.habits.map(habit => {
+            const streak = calculateStreak(habit);
+            const today = new Date().toISOString().split('T')[0];
+            
+            const days = [];
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const isCompleted = habit.completedDays.includes(dateStr);
+                const isToday = dateStr === today;
+                days.push(`
+                    <div class="day-cell ${isCompleted ? 'completed' : ''} ${isToday ? 'today' : ''}" 
+                         onclick="toggleDay(${habit.id}, '${dateStr}')"
+                         title="${dateStr}"></div>
+                `);
+            }
+
+            return `
+                <div class="habit-item">
+                    <div class="habit-header">
+                        <div class="habit-icon">${habit.icon}</div>
+                        <div class="habit-info">
+                            <div class="habit-name">${habit.name}</div>
+                            <div class="habit-streak">🔥 ${l.streak}: ${streak} ${currentLang === 'ru' ? 'дней' : currentLang === 'en' ? 'days' : 'يوم'} | ${l.total}: ${habit.completedDays.length} ${currentLang === 'ru' ? 'дней' : currentLang === 'en' ? 'days' : 'يوم'}</div>
+                        </div>
+                        <button onclick="deleteHabit(${habit.id})" style="background: #ef4444; padding: 8px 15px;">🗑️</button>
+                    </div>
+                    <div class="days-grid">
+                        ${days.join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateHabitsStats() {
+        const today = new Date().toISOString().split('T')[0];
+        
+        document.getElementById('totalHabits').textContent = habitsData.habits.length;
+        
+        let bestStreak = 0;
+        habitsData.habits.forEach(h => {
+            const streak = calculateStreak(h);
+            if (streak > bestStreak) bestStreak = streak;
+        });
+        document.getElementById('bestStreak').textContent = bestStreak + ' 🔥';
+        
+        const totalToday = habitsData.habits.length;
+        const completedToday = habitsData.habits.filter(h => h.completedDays.includes(today)).length;
+        const progress = totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0;
+        document.getElementById('todayProgress').textContent = progress + '%';
+    }
+
+    // ============ INITIALIZATION ============
+    document.addEventListener('DOMContentLoaded', function() {
+        changeLanguage(currentLang);
+        updateDashboardStats();
+    });
+</script>
+
+</body>
+</html>
